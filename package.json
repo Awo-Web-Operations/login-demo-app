@@ -17,6 +17,7 @@
     "formik": "^2.2.9",
     "fs": "^0.0.1-security",
     "jquery": "^3.5.1",
+    "jwt-decode": "^3.1.2",
     "material-ui-chip-input": "^1.1.0",
     "mdbreact": "^4.27.0",
     "passport-facebook": "^3.0.0",

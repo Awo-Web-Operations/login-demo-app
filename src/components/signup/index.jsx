@@ -1,5 +1,5 @@
 import { Formik } from "formik";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Container,
@@ -9,22 +9,26 @@ import {
   ButtonToolbar,
   Form,
 } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useHistory } from "react-router-dom";
+import { authUser } from "../../store/actions";
 import { setTimeout } from "timers";
 import * as Yup from "yup";
-import axios from "../../util/Api";
 import "./style.css";
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().required("Email is required"),
-  phone: Yup.string().required("Phone is required"),
+  phoneNumber: Yup.string().required("Phone is required"),
   username: Yup.string().required("Username is required"),
   password: Yup.string().required("Password is required"),
 });
 
 const Signup = () => {
+  const history = useHistory();
+  const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(true);
+  const [isSubmitting, setSubmitting] = useState(false);
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated)
 
   const handleClose = (delay) => {
     setTimeout(() => {
@@ -32,15 +36,9 @@ const Signup = () => {
     }, delay || 0);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const res = await axios.post("/signupuser");
-      console.log("res_______", res);
-    } catch (error) {
-      toast(error.message, { type: "error" });
-      console.log("err_____", error.response ? error.response : error.message);
-    }
-  };
+  useEffect(() => {
+    if(isAuthenticated) history.push('/grocery')
+  }, [isAuthenticated]);
 
   return (
     <Modal
@@ -67,13 +65,17 @@ const Signup = () => {
               <Formik
                 initialValues={{
                   email: "",
-                  phone: "",
+                  phoneNumber: "",
                   username: "",
                   password: "",
                   emailNotification: true,
                 }}
                 validationSchema={validationSchema}
-                onSubmit={handleSubmit}
+                onSubmit={(values) => {
+                  dispatch(
+                    authUser({ setSubmitting, history, values, isSignup: true })
+                  );
+                }}
               >
                 {({ handleChange, values, errors, touched, handleSubmit }) => (
                   <form className="" onSubmit={handleSubmit}>
@@ -94,11 +96,11 @@ const Signup = () => {
                           </small>
                         )}
                       </div>
-                      <Form.Label>Or</Form.Label>
+                      <Form.Label></Form.Label>
                       <div>
                         <Form.Control
                           type="tel"
-                          name="phone"
+                          name="phoneNumber"
                           placeholder="Your Phone Number"
                           onChange={handleChange}
                           value={values.phone}
@@ -158,10 +160,19 @@ const Signup = () => {
                     </Form.Group>
                     <ButtonToolbar>
                       <Button
-                        variant="secondary"
+                        variant="success"
                         type="submit"
-                        className="login__form-btn"
+                        size="md"
+                        className="mt-3"
                       >
+                        {isSubmitting && (
+                          <div
+                            class="spinner-border spinner-border-sm mr-2 text-light"
+                            role="status"
+                          >
+                            <span class="sr-only">Loading...</span>
+                          </div>
+                        )}
                         Sign Up
                       </Button>
                     </ButtonToolbar>
